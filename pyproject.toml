@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools~=70.3.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openmetadata-ingestion-contrib"
+authors = [
+    { name = "TIKI GmbH" }
+]
+version = "0.1.0"
+description = "Framework for using custom implementations of Open Metadata connectors"
+requires-python = ">=3.10"
+dependencies = [
+    "openmetadata-ingestion~=1.6.3.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["./src"]
+exclude = ["tests*"]
+namespaces = true
