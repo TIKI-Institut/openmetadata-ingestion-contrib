@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools~=70.3.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openmetadata-ingestion-contrib"
+authors = [
+    { name = "TIKI GmbH" }
+]
+version = "0.1.0"
+license = { file = "LICENSE.txt" }
+description = "Framework for customizing existing connectors of the OpenMetadata platform"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "openmetadata-ingestion~=1.6.0",
+    "PyYAML~=6.0"
+]
+
+[project.urls]
+Documentation = "https://github.com/TIKI-Institut/openmetadata-ingestion-contrib/tree/main#readme"
+Source = "https://github.com/TIKI-Institut/openmetadata-ingestion-contrib"
+Tracker = "https://github.com/TIKI-Institut/openmetadata-ingestion-contrib/issues"
+
+[project.scripts]
+patch-service-specs = "ingestion_contrib.patch_service_specs:main"
+
+[tool.setuptools.packages.find]
+where = ["./src"]
+exclude = ["tests*"]
+namespaces = true
