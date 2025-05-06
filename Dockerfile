@@ -13,7 +13,7 @@ COPY pyproject.toml .
 RUN chown -R airflow ./src
 
 USER airflow
-RUN pip install --no-deps .
+RUN pip install .
 
 WORKDIR patch
 RUN python patch_service_specs.py
