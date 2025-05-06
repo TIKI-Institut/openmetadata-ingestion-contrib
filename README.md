@@ -1,6 +1,7 @@
 # openmetadata-ingestion-contrib
 
-Framework for developing custom solutions for connectors of the Open Metadata platform.
+Framework for customizing existing connectors of the OpenMetadata platform.
+Simply it allows replacing or extending the original implementation while still using the OpenMetadata UI integration of the connectors.
 
 Existing connectors will be shadowed by the newly developed solutions.
 
