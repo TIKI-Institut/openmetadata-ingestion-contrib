@@ -8,11 +8,18 @@ authors = [
     { name = "TIKI GmbH" }
 ]
 version = "0.1.0"
+license = { file = "LICENSE.txt" }
 description = "Framework for customizing existing connectors of the OpenMetadata platform"
+readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "openmetadata-ingestion~=1.6.0",
 ]
+
+[project.urls]
+Documentation = "https://github.com/TIKI-Institut/openmetadata-ingestion-contrib/tree/main#readme"
+Source = "https://github.com/TIKI-Institut/openmetadata-ingestion-contrib"
+Tracker = "https://github.com/TIKI-Institut/openmetadata-ingestion-contrib/issues"
 
 [tool.setuptools.packages.find]
 where = ["./src"]
