@@ -1,19 +1,11 @@
 ARG OPENMETADATA_INGESTION_IMAGE_VERSION
 FROM openmetadata/ingestion:${OPENMETADATA_INGESTION_IMAGE_VERSION}
 
-WORKDIR ingestion
-USER root
+RUN mkdir ./ingestion_contrib
+COPY --chown=airflow ./src ./ingestion_contrib/src
+COPY --chown=airflow pyproject.toml ./ingestion_contrib
+COPY --chown=airflow config.example.yaml ./ingestion_contrib/config.yaml
 
-COPY ./src ./src
-COPY ./patch ./patch
-COPY pyproject.toml .
+RUN cd ingestion_contrib && pip install .
 
-# need to be root to change owner of directory
-# user airflow needs write permissions to build the package
-RUN chown -R airflow ./src
-
-USER airflow
-RUN pip install .
-
-WORKDIR patch
-RUN python patch_service_specs.py
+RUN cd ingestion_contrib && patch-service-specs

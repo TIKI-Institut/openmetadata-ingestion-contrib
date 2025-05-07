@@ -14,12 +14,16 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "openmetadata-ingestion~=1.6.0",
+    "PyYAML~=6.0"
 ]
 
 [project.urls]
 Documentation = "https://github.com/TIKI-Institut/openmetadata-ingestion-contrib/tree/main#readme"
 Source = "https://github.com/TIKI-Institut/openmetadata-ingestion-contrib"
 Tracker = "https://github.com/TIKI-Institut/openmetadata-ingestion-contrib/issues"
+
+[project.scripts]
+patch-service-specs = "ingestion_contrib.patch_service_specs:main"
 
 [tool.setuptools.packages.find]
 where = ["./src"]

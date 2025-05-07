@@ -7,38 +7,54 @@ Existing connectors will be shadowed by the newly developed solutions.
 
 ## Installation
 
-For developing and installation of custom connectors refer to the [official Open Metadata documentation](https://docs.open-metadata.org/latest/connectors/custom-connectors).
+Installations is similar to adding a custom connector, see [Prepare the Ingestion Image
+](https://docs.open-metadata.org/latest/connectors/custom-connectors#step-4-prepare-the-ingestion-image)
+
+Additionally a config file needs to be provided, which enables the patching / shadowing of the existing connector.
+
+```yaml
+patch-service-specs:
+   # <contrib implementation name>: <target connector>
+   "mariadb_example": mariadb
+   "kafka_example": kafka
+```
+
+Finally the patching can be executed with
+```bash
+patch-service-specs
+```
+
+For a whole example see [Dockerfile](./Dockerfile)
 
 ## Project structure
-- `./src` contains custom modules that can be referenced by `service_spec.py` files. These are typically custom implementations
-of Open Metadata connectors that also inherit from their original implementations.
-
- 
-- `./patch` contains a Python script that will traverse the `ingestion` folder and searches for files named `service_spec.py`.
-It then will search for the according service_spec files in the original `metadata/ingestion` directory. If the relative paths
-starting from the `metadata` directory match, the original file is replaced by the according file in this.
-The patch script is executed after installing the `ingestion_contrib` package in the Docker container.
-
+- `./src` contains the connector implementations like in the official [OpenMetadata repository](https://github.com/open-metadata/OpenMetadata/tree/main/ingestion/src/metadata/ingestion/source).
+The package structure needs to be identical except for the last connector name. `service_spec.py` files should point the new customized implementation.
+It also provides some example connectors.
 
 - `local-openmetadata-stack` contains a Docker Compose file to deploy a Open Metadata instance locally. It should be 
 started using the `Makefile` in the root directory.
 
 ## Configuration
 
-The patch process can be configured with the [config.yml](./patch/config.yml) file in the `patch` directory.
-Mandatory config keys are `rootdir` and `patch-service-specs`.
+The patch process can be configured with the [config.yaml](./config.example.yaml).
+The `config.yaml` file needs to exist where the command `patch-service-specs` is executed.
 
-`rootdir` has to point to the `ingestion` directory in which the `service_spec.py` files (and subdirectories) reside.
+`patch-service-specs` contains a list of connectors whose `service_spec.py` files should be patched. 
 
-`patch-service-specs` contains a list of modules whose `service_spec.py` files should be patched. The modules names
-are derived from the directory in which the `service_spec.py` files are placed (for 
-`ingestion/source/database/mariadb/service_spec.py` the config entry is `mariadb`).
+```yaml
+patch-service-specs:
+   # <contrib implementation name>: <target connector>
+   "mariadb_example": mariadb
+   "kafka_example": kafka
+```
+The modules names are derived from the directory in which the `service_spec.py` files are placed (for 
+`src/ingestion_contrib/ingestion/source/database/mariadb_example/service_spec.py` the config entry is `mariadb_example`).
 
 ## Local Dev Stack
 
 1. Setup a virtual environment for Python and install dependencies with 
     ```shell
-    pip install .
+    pip install -e .
     ```
 2. Start local Docker containers with 
    ```shell

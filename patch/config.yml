@@ -1,4 +1,0 @@
-rootdir: "./ingestion"
-patch-service-specs:
-   - "mariadb"
-   - "kafka"
