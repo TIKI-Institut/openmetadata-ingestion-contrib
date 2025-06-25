@@ -12,7 +12,7 @@ def main():
     with open("./config.yaml") as config_file:
         config: dict = yaml.safe_load(config_file)
 
-    patch_service_specs = dict(config.get("patch-service-specs", []))
+    patch_service_specs: dict | None = config.get("patch-service-specs")
     if not patch_service_specs:
         print("[*] No service specs defined with key \"patch-service-specs\" in config. Exiting now")
         exit(0)
@@ -22,7 +22,7 @@ def main():
     ingestion_contrib_location = Path(inspect.getmodule(ingestion_contrib).__spec__.submodule_search_locations[0])
 
     # get the paths of all service_spec.py files of this project recursively and instantiate relative Path objects
-    service_spec_source_paths: list[(Str, Path)] = [
+    service_spec_source_paths: list[tuple[str, str]] = [
         (dirpath.split(os.sep)[-1], os.path.relpath(Path(dirpath + "/service_spec.py"), ingestion_contrib_location))
         for dirpath, _, filename in os.walk(ingestion_contrib_location)
         if "service_spec.py" in filename
