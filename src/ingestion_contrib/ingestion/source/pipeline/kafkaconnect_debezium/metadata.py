@@ -70,6 +70,8 @@ class KafkaConnectDebeziumSource(KafkaconnectSource):
             )
 
             dataset_entity = self.get_dataset_entity(pipeline_details=pipeline_details)
+            dataset_entities = None
+            topic_prefix = ""
 
             # if we have a related database we have to search and relate child tables later
             if isinstance(dataset_entity, Database):
