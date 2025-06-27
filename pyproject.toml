@@ -7,7 +7,8 @@ name = "openmetadata-ingestion-contrib"
 authors = [
     { name = "TIKI GmbH" }
 ]
-version = "0.1.0"
+# <version core> "-" <pre-release>
+version = "0.1.1-1"
 license = { file = "LICENSE.txt" }
 description = "Framework for customizing existing connectors of the OpenMetadata platform"
 readme = "README.md"
