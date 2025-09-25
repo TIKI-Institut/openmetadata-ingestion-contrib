@@ -139,22 +139,6 @@ class OpenlineageExtSource(OpenlineageSource):
         # however, concept of GCP Project ID is not represented in Open Metadata and hence - we need to skip this part
         return TableDetails(name=name_parts[-1], schema=name_parts[-2])
 
-    # def get_create_topic_request(self, topic: Dict) -> Optional[Either]:
-    #     topic_details = OpenlineageExtSource._get_topic_details(topic)
-    #     topic_fqn = None
-    #
-    #     try:
-    #         topic_fqn = self._get_topic_fqn_from_om(topic_details)
-    #         return None
-    #     except FQNNotFoundException:
-    #         pass
-    #
-    #     if not topic_fqn:
-    #         # TODO partitions
-    #         request = CreateTopicRequest(name=topic_details.name, service=topic_fqn, partitions=1)
-    #         return Either(right=request)
-    #     return None
-
     def yield_pipeline_lineage_details(
             self, pipeline_details: OpenLineageEvent
     ) -> Iterable[Either[AddLineageRequest]]:
@@ -168,11 +152,6 @@ class OpenlineageExtSource(OpenlineageSource):
 
             for io_entity in io_entities:
                 if OpenlineageExtSource._is_kafka_topic(io_entity):
-                    # # TODO topic request
-                    # create_topic_request = self.get_create_topic_request(io_entity)
-                    # if create_topic_request:
-                    #     yield create_topic_request
-
                     # TODO relate to kafka instance
                     topic_details = OpenlineageExtSource._get_topic_details(io_entity)
                     topic_fqn = topic_details.name
@@ -184,11 +163,6 @@ class OpenlineageExtSource(OpenlineageSource):
                         )
                     )
                 else:
-                    # create_table_request = self.get_create_table_request(io_entity)
-                    #
-                    # if create_table_request:
-                    #     yield create_table_request
-
                     # TODO relate to catalog instance
                     table_fqn = self._get_table_fqn(
                         OpenlineageExtSource._get_table_details(io_entity)
