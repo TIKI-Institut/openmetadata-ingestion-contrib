@@ -13,43 +13,12 @@ Openlineage Source Model module
 """
 
 from dataclasses import dataclass
-from enum import Enum
-from typing import Any, Dict, List, Optional
-
-
-@dataclass
-class OpenLineageEvent:
-    """
-    An object containing data extracted from raw OpenLineage event. Used as a basis for all abstract methods of
-    OpenlineageSource connector.
-    """
-
-    run_facet: Dict
-    job: Dict
-    event_type: str
-    inputs: List[Any]
-    outputs: List[Any]
-
-
-@dataclass
-class TableFQN:
-    """
-    Fully Qualified Name of a Table.
-    """
-
-    value: str
+from metadata.ingestion.source.pipeline.openlineage.models import (
+    TableFQN,
+)
 
 @dataclass
 class TopicFQN:
-    value: str
-
-
-@dataclass
-class ColumnFQN:
-    """
-    Fully Qualified Name of a Column.
-    """
-
     value: str
 
 
@@ -75,26 +44,8 @@ class LineageEdge:
 
 
 @dataclass
-class TableDetails:
-    """
-    Minimal table information.
-    """
-
-    name: str
-    schema: str
-    database: Optional[str] = None
-
-@dataclass
 class TopicDetails:
     """
     Kafka Topic information.
     """
     name: str
-
-
-class EventType(str, Enum):
-    """
-    List of used OpenLineage event types.
-    """
-
-    COMPLETE = "COMPLETE"
