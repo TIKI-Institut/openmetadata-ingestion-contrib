@@ -13,14 +13,7 @@ Openlineage Source Model module
 """
 
 from dataclasses import dataclass
-from metadata.ingestion.source.pipeline.openlineage.models import (
-    TableFQN,
-)
-
-@dataclass
-class TopicFQN:
-    value: str
-
+from typing import Optional
 
 @dataclass
 class LineageNode:
@@ -29,7 +22,7 @@ class LineageNode:
     """
 
     uuid: str
-    fqn: TableFQN | TopicFQN
+    fqn: str
     node_type: str = "table"
 
 
@@ -44,8 +37,19 @@ class LineageEdge:
 
 
 @dataclass
+class DataSourceFacet:
+    """
+    DataSource facet.
+    """
+    name: str
+    uri: str
+
+
+@dataclass
 class TopicDetails:
     """
     Kafka Topic information.
     """
+    namespace: str
     name: str
+    data_source: Optional[DataSourceFacet]
