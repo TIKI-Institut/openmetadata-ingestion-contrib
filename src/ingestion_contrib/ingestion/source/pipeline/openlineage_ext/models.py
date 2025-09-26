@@ -53,3 +53,25 @@ class TopicDetails:
     namespace: str
     name: str
     data_source: Optional[DataSourceFacet]
+
+
+@dataclass
+class JobTypeFacet:
+    """
+    JobType facet.
+    """
+    processingType: str
+    integration: str
+    jobType: Optional[str]
+
+    def __str__(self):
+        return f"{self.integration} {self.processingType}{" " + self.jobType if self.jobType else ""}"
+
+
+@dataclass
+class SqlFacet:
+    """
+    Sql facet.
+    """
+    query: str
+    dialect: Optional[str]

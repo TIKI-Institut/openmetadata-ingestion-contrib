@@ -48,7 +48,7 @@ from ingestion_contrib.ingestion.source.pipeline.openlineage_ext.models import (
     LineageEdge,
     LineageNode,
     TopicDetails,
-    DataSourceFacet
+    DataSourceFacet, JobTypeFacet, SqlFacet
 )
 
 logger = ingestion_logger()
@@ -72,6 +72,28 @@ class OpenlineageExtSource(OpenlineageSource):
             return True
 
         return False
+
+    @classmethod
+    def _get_jobtype_facet(cls, job_data: Dict) -> Optional[JobTypeFacet]:
+        facets = job_data.get("facets") or {}
+
+        if facets.get("jobType"):
+            jobtype_facet = facets.get("jobType")
+            return JobTypeFacet(processingType=jobtype_facet.get("processingType"),
+                                integration=jobtype_facet.get("integration"),
+                                jobType=jobtype_facet.get("jobType", None))
+
+        return None
+
+    @classmethod
+    def _get_sql_facet(cls, job_data: Dict) -> Optional[SqlFacet]:
+        facets = job_data.get("facets") or {}
+
+        if facets.get("sql"):
+            sql_facet = facets.get("sql")
+            return SqlFacet(query=sql_facet.get("query"), dialect=sql_facet.get("dialect", None))
+
+        return None
 
     @classmethod
     def _get_topic_details(cls, data: Dict) -> Optional[TopicDetails]:
@@ -222,6 +244,10 @@ class OpenlineageExtSource(OpenlineageSource):
         )
 
         pipeline_entity = self.metadata.get_by_name(entity=Pipeline, fqn=pipeline_fqn)
+
+        jobtype_facet = OpenlineageExtSource._get_jobtype_facet(pipeline_details.job)
+        sql_facet = OpenlineageExtSource._get_sql_facet(pipeline_details.job)
+
         for edge in edges:
             yield Either(
                 right=AddLineageRequest(
@@ -237,7 +263,8 @@ class OpenlineageExtSource(OpenlineageSource):
                                 id=pipeline_entity.id.root,
                                 type="pipeline",
                             ),
-                            description=f"Lineage extracted from OpenLineage job: {pipeline_details.job['name']}",
+                            sqlQuery=sql_facet.query if sql_facet else None,
+                            description=f"{str(jobtype_facet) if jobtype_facet else "Lineage extracted from OpenLineage"} job: {pipeline_details.job['name']}",
                             source=Source.OpenLineage,
                             columnsLineage=column_lineage.get(
                                 edge.to_node.fqn, {}
