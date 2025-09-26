@@ -103,7 +103,7 @@ class OpenlineageExtSource(OpenlineageSource):
 
     def _find_existing_topic(self, topic_details: TopicDetails) -> Optional[Topic]:
         services = self.get_db_service_names()
-        # TODO what happens if we have multiple kafka services with same topics?
+
         for db_service in services:
             result = self.metadata.get_by_name(entity=Topic, fqn=fqn.build(
                 metadata=self.metadata,
@@ -118,6 +118,7 @@ class OpenlineageExtSource(OpenlineageSource):
 
     def _find_existing_table(self, table_details: TableDetails) -> Optional[Table]:
         services = self.get_db_service_names()
+
         for db_service in services:
             result = self.metadata.get_by_name(entity=Table, fqn=fqn.build(
                 metadata=self.metadata,
