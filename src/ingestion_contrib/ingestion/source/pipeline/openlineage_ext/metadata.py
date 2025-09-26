@@ -1,29 +1,21 @@
-#  Copyright 2025 Collate
-#  Licensed under the Collate Community License, Version 1.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#  https://github.com/open-metadata/OpenMetadata/blob/main/ingestion/LICENSE
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-
-"""
-OpenLineage source to extract metadata from Kafka events
-"""
 import json
 import traceback
+from datetime import datetime
 from itertools import product
 from typing import Any, Dict, Iterable, List, Optional
 
+from metadata.generated.schema.api.data.createPipeline import CreatePipelineRequest
 from metadata.generated.schema.api.lineage.addLineage import AddLineageRequest
-from metadata.generated.schema.entity.data.pipeline import Pipeline
+from metadata.generated.schema.entity.data.pipeline import Pipeline, PipelineStatus
 from metadata.generated.schema.entity.data.table import Table
 from metadata.generated.schema.entity.data.topic import Topic
+from metadata.generated.schema.entity.services.ingestionPipelines.status import (
+    StackTraceError,
+)
 from metadata.generated.schema.metadataIngestion.workflow import (
     Source as WorkflowSource,
 )
+from metadata.generated.schema.type.basic import Timestamp
 from metadata.generated.schema.type.entityLineage import (
     EntitiesEdge,
     LineageDetails,
@@ -32,14 +24,12 @@ from metadata.generated.schema.type.entityLineage import (
 from metadata.generated.schema.type.entityReference import EntityReference
 from metadata.ingestion.api.models import Either
 from metadata.ingestion.api.steps import InvalidSourceException
+from metadata.ingestion.models.pipeline_status import OMetaPipelineStatus
 from metadata.ingestion.ometa.ometa_api import OpenMetadata
 from metadata.ingestion.source.pipeline.openlineage.metadata import OpenlineageSource
 from metadata.ingestion.source.pipeline.openlineage.models import (
     OpenLineageEvent,
     TableDetails,
-)
-from metadata.ingestion.source.pipeline.openlineage.utils import (
-    message_to_open_lineage_event,
 )
 from metadata.utils import fqn
 from metadata.utils.logger import ingestion_logger
@@ -48,8 +38,9 @@ from ingestion_contrib.ingestion.source.pipeline.openlineage_ext.models import (
     LineageEdge,
     LineageNode,
     TopicDetails,
-    DataSourceFacet, JobTypeFacet, SqlFacet
+    DataSourceFacet, JobTypeFacet, SqlFacet, EventType, OpenLineageEventExt
 )
+from ingestion_contrib.ingestion.source.pipeline.openlineage_ext.utils import message_to_open_lineage_event
 
 logger = ingestion_logger()
 
@@ -105,7 +96,8 @@ class OpenlineageExtSource(OpenlineageSource):
         data_source = None
 
         if facets.get("dataSource"):
-            data_source = DataSourceFacet(name=facets.get("dataSource").get("name"), uri=facets.get("dataSource").get("uri"))
+            data_source = DataSourceFacet(name=facets.get("dataSource").get("name"),
+                                          uri=facets.get("dataSource").get("uri"))
 
         return TopicDetails(namespace=namespace, name=name, data_source=data_source) if name else None
 
@@ -233,7 +225,7 @@ class OpenlineageExtSource(OpenlineageSource):
         ]
 
         # TODO: check impl
-        #column_lineage = self._get_column_lineage(inputs, outputs)
+        # column_lineage = self._get_column_lineage(inputs, outputs)
         column_lineage = {}
 
         pipeline_fqn = fqn.build(
@@ -274,6 +266,69 @@ class OpenlineageExtSource(OpenlineageSource):
                 )
             )
 
+    def yield_pipeline(
+            self, pipeline_details: OpenLineageEvent
+    ) -> Iterable[Either[CreatePipelineRequest]]:
+        pipeline_name = self.get_pipeline_name(pipeline_details)
+        try:
+            description = f"""```json
+            {json.dumps(pipeline_details.run_facet, indent=4).strip()}```"""
+            request = CreatePipelineRequest(
+                name=pipeline_name,
+                service=self.context.get().pipeline_service,
+                description=description,
+                tasks=[]
+            )
+
+            yield Either(right=request)
+            self.register_record(pipeline_request=request)
+        except ValueError:
+            yield Either(
+                left=StackTraceError(
+                    name=pipeline_name,
+                    message="Failed to collect metadata required for pipeline creation.",
+                ),
+                stackTrace=traceback.format_exc(),
+            )
+
+    def yield_pipeline_status(
+            self, pipeline_details: OpenLineageEventExt
+    ) -> Iterable[Either[OMetaPipelineStatus]]:
+        """
+        Get Pipeline Status
+        """
+        pipeline_name = self.get_pipeline_name(pipeline_details)
+
+        try:
+            pipeline_status = PipelineStatus(
+                executionStatus=EventType.to_om_status(EventType(pipeline_details.event_type)),
+                timestamp=Timestamp(int(datetime.fromisoformat(pipeline_details.event_time).timestamp() * 1000)),
+                taskStatus=[]
+            )
+
+            pipeline_fqn = fqn.build(
+                metadata=self.metadata,
+                entity_type=Pipeline,
+                service_name=self.context.get().pipeline_service,
+                pipeline_name=self.context.get().pipeline,
+            )
+
+            yield Either(
+                right=OMetaPipelineStatus(
+                    pipeline_fqn=pipeline_fqn,
+                    pipeline_status=pipeline_status,
+                )
+            )
+
+        except Exception as exc:
+            yield Either(
+                left=StackTraceError(
+                    name=pipeline_name,
+                    error=f"Wild error ingesting pipeline status {pipeline_name} - {exc}",
+                    stackTrace=traceback.format_exc(),
+                )
+            )
+
     def get_pipelines_list(self) -> Optional[List[Any]]:
         """Get List of all pipelines"""
         try:
@@ -299,8 +354,8 @@ class OpenlineageExtSource(OpenlineageSource):
                         result = message_to_open_lineage_event(
                             json.loads(message.value())
                         )
-                        # result = self._filter_event_by_type(_result, EventType.COMPLETE)
-                        if result:
+
+                        if EventType(result.event_type) in [EventType.COMPLETE, EventType.RUNNING, EventType.FAIL]:
                             yield result
                     except Exception as e:
                         logger.debug(e)
