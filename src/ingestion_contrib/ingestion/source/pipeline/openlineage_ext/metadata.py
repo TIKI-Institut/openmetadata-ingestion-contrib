@@ -1,6 +1,6 @@
 import json
 import traceback
-from datetime import datetime
+from dateutil import parser
 from itertools import product
 from typing import Any, Dict, Iterable, List, Optional
 
@@ -59,10 +59,7 @@ class OpenlineageExtSource(OpenlineageSource):
 
     @classmethod
     def _is_kafka_topic(cls, data: Dict) -> bool:
-        if data.get("namespace").startswith("kafka://"):
-            return True
-
-        return False
+        return data.get("namespace").startswith("kafka://")
 
     @classmethod
     def _get_jobtype_facet(cls, job_data: Dict) -> Optional[JobTypeFacet]:
@@ -257,7 +254,7 @@ class OpenlineageExtSource(OpenlineageSource):
                                 type="pipeline",
                             ),
                             sqlQuery=sql_facet.query if sql_facet else None,
-                            description=f"{str(jobtype_facet) if jobtype_facet else "Lineage extracted from OpenLineage"} job: {pipeline_details.job['name']}",
+                            description=f"{str(jobtype_facet) if jobtype_facet else 'Lineage extracted from OpenLineage'} job: {pipeline_details.job['name']}",
                             source=Source.OpenLineage,
                             columnsLineage=column_lineage.get(
                                 edge.to_node.fqn, {}
@@ -303,7 +300,7 @@ class OpenlineageExtSource(OpenlineageSource):
         try:
             pipeline_status = PipelineStatus(
                 executionStatus=EventType.to_om_status(EventType(pipeline_details.event_type)),
-                timestamp=Timestamp(int(datetime.fromisoformat(pipeline_details.event_time).timestamp() * 1000)),
+                timestamp=Timestamp(int(parser.parse(pipeline_details.event_time).timestamp() * 1000)),
                 taskStatus=[]
             )
 

@@ -61,7 +61,7 @@ class JobTypeFacet:
     jobType: Optional[str]
 
     def __str__(self):
-        return f"{self.integration} {self.processingType}{" " + self.jobType if self.jobType else ""}"
+        return f"{self.integration} {self.processingType}{' ' + self.jobType if self.jobType else ''}"
 
 
 @dataclass
