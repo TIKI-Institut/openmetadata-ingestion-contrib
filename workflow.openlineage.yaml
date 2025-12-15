@@ -1,0 +1,26 @@
+source:
+  type: OpenLineage
+  serviceName: local_openlineage
+  serviceConnection:
+    config:
+      type: OpenLineage
+      brokersUrl: localhost:9092
+      topicName: rdp.openlineage.events
+      consumerGroupName: "local_openmetadata"
+    
+      saslConfig:
+        saslMechanism: "PLAIN"
+  sourceConfig:
+    config:
+      type: PipelineMetadata
+sink:
+  type: metadata-rest
+  config: {}
+workflowConfig:
+  loggerLevel: DEBUG # DEBUG, INFO, WARN or ERROR
+  openMetadataServerConfig:
+    hostPort: http://localhost:8585/api
+    authProvider: openmetadata
+    verifySSL: ignore
+    securityConfig:
+      jwtToken: ""

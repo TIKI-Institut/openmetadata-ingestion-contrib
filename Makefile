@@ -1,4 +1,4 @@
-export OPENMETADATA_INGESTION_IMAGE_VERSION := 1.9.5
+export OPENMETADATA_INGESTION_IMAGE_VERSION := 1.9.7
 
 .DEFAULT_GOAL := help
 
@@ -20,9 +20,9 @@ endif
 
 .PHONY: local-openmetadata-stack
 local-openmetadata-stack:  ## first shutdown any existing and then starts a local openmetadata stack for testing
-	docker compose -f ./local-openmetadata-stack/docker-compose.yml down -v && docker compose -f ./local-openmetadata-stack/docker-compose.yml up -d
+	docker compose -f ./local-openmetadata-stack/docker-compose.yml down && docker compose -f ./local-openmetadata-stack/docker-compose.yml up -d
 
 .PHONY: update-ingestion-container
 update-ingestion-container: ## shutdown any existing services and start the local Open Metadata stack with a fresh build of the ingestion service
-	docker compose -f ./local-openmetadata-stack/docker-compose.yml down -v && \
+	docker compose -f ./local-openmetadata-stack/docker-compose.yml down && \
 	docker compose -f ./local-openmetadata-stack/docker-compose.yml up -d --build ingestion
