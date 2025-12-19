@@ -15,7 +15,8 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "openmetadata-ingestion>=1.9.0,<1.10",
-    "PyYAML~=6.0"
+    "PyYAML~=6.0",
+    "pyiceberg==0.10.0"
 ]
 
 [project.urls]
