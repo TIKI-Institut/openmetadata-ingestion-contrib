@@ -1,3 +1,9 @@
-patch-service-specs:
-   "mariadb_example": mariadb
-   "kafka_example": kafka
+patch-files:
+   "mariadb_example":
+      "target_dir": mariadb
+      "files":
+         - "service_spec.py"
+   "kafka_example":
+      "target_dir": kafka
+      "files":
+         - "service_spec.py"

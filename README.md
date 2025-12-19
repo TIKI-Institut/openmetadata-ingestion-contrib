@@ -13,10 +13,18 @@ Installations is similar to adding a custom connector, see [Prepare the Ingestio
 Additionally a config file needs to be provided, which enables the patching / shadowing of the existing connector.
 
 ```yaml
-patch-service-specs:
-   # <contrib implementation name>: <target connector>
-   "mariadb_example": mariadb
-   "kafka_example": kafka
+patch-files:
+   # <contrib implementation name>: 
+   #  "target_dir": <target connector directory>
+   #  "files": <list of files that should be copied to the destination>
+   "mariadb_example":
+      "target_dir": mariadb
+      "files":
+         - "service_spec.py"
+   "kafka_example":
+      "target_dir": kafka
+      "files":
+         - "service_spec.py"
 ```
 
 Finally the patching can be executed with
@@ -39,15 +47,22 @@ started using the `Makefile` in the root directory.
 The patch process can be configured with the [config.yaml](./config.example.yaml).
 The `config.yaml` file needs to exist where the command `patch-service-specs` is executed.
 
-`patch-service-specs` contains a list of connectors whose `service_spec.py` files should be patched. 
+`patch-files` contains a list of connectors whose files should be patched. Two keys are needed: 
+   - `target_dir` determines the directory to which the files are copied
+   - `files` contains the list of files that should be copied with their relative path to `target_dir` in the destination
 
 ```yaml
-patch-service-specs:
-   # <contrib implementation name>: <target connector>
-   "mariadb_example": mariadb
-   "kafka_example": kafka
+patch-files:
+   "mariadb_example":
+      "target_dir": mariadb
+      "files":
+         - "service_spec.py"
+   "kafka_example":
+      "target_dir": kafka
+      "files":
+         - "service_spec.py"
 ```
-The modules names are derived from the directory in which the `service_spec.py` files are placed (for 
+The modules names are derived from the directory in which the files are placed (for 
 `src/ingestion_contrib/ingestion/source/database/mariadb_example/service_spec.py` the config entry is `mariadb_example`).
 
 ## Local Dev Stack
