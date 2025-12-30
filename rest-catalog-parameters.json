@@ -1,0 +1,6 @@
+{
+  "iceberg-test": {
+    "oauth2-server-uri": "https://login.microsoftonline.com/e8f7dd45-c2fc-4620-ae63-d30ae39b877a/oauth2/v2.0/token",
+    "scope": "api://cc48cb63-12a0-4193-9d33-75ebd6eb3839/.default"
+  }
+}

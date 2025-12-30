@@ -1,0 +1,6 @@
+{
+  "iceberg-test": {
+    "oauth2-server-uri": "<oauth2 token endpoint>",
+    "scope": "openid"
+  }
+},

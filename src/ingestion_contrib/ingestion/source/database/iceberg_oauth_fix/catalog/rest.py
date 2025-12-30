@@ -1,4 +1,5 @@
-from pyiceberg.catalog import Catalog, load_rest
+import json
+import os
 
 from metadata.generated.schema.entity.services.connections.database.iceberg.icebergCatalog import (
     IcebergCatalog,
@@ -7,12 +8,13 @@ from metadata.generated.schema.entity.services.connections.database.iceberg.rest
     RestCatalogConnection,
 )
 from metadata.ingestion.source.database.iceberg.catalog.base import IcebergCatalogBase
-
-import json
+from pyiceberg.catalog import Catalog, load_rest
 
 
 class IcebergRestCatalogOauthFix(IcebergCatalogBase):
     """Responsible for building a PyIceberg Rest Catalog."""
+
+    ICEBERG_REST_CONFIG_FILE_PATH_ENV_VARIABLE = "ICEBERG_REST_CONFIG_FILE_PATH"
 
     @classmethod
     def get_catalog(cls, catalog: IcebergCatalog) -> Catalog:
@@ -35,8 +37,13 @@ class IcebergRestCatalogOauthFix(IcebergCatalogBase):
         else:
             credential = None
 
-        with open("/etc/openmetadata/rest-catalog-parameters", "r") as properties_file:
-            additional_rest_parameters = json.load(properties_file)
+        with open(
+                os.environ.get(
+                    IcebergRestCatalogOauthFix.ICEBERG_REST_CONFIG_FILE_PATH_ENV_VARIABLE,
+                    "/etc/openmetadata-ingestion-contrib/rest-catalog-parameters.json"),
+                "r") as properties_file:
+            rest_catalog_config_parameters = json.load(properties_file)
+            additional_rest_parameters = rest_catalog_config_parameters[catalog.name]
 
         parameters = {
             "warehouse": catalog.warehouseLocation,
@@ -44,7 +51,7 @@ class IcebergRestCatalogOauthFix(IcebergCatalogBase):
             **additional_rest_parameters
         }
 
-        if  credential:
+        if credential:
             parameters["credential"] = credential
 
         if catalog.connection.token:

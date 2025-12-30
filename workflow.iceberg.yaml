@@ -1,0 +1,32 @@
+source:
+  type: iceberg
+  serviceName: iceberg-test
+  serviceConnection:
+    config:
+      type: Iceberg
+      catalog:
+        name: iceberg-test
+        databaseName: iceberg_test
+        warehouseLocation: iceberg_test
+        connection:
+          uri: http://localhost:8181/catalog
+          #credential:
+            #clientId:
+            #clientSecret:
+  sourceConfig:
+    config:
+      type: DatabaseMetadata
+      schemaFilterPattern:
+        includes:
+          - Rawcore
+sink:
+  type: metadata-rest
+  config: {}
+workflowConfig:
+  loggerLevel: DEBUG #INFO # DEBUG, INFO, WARN or ERROR
+  openMetadataServerConfig:
+    hostPort: http://localhost:8585/api
+    authProvider: openmetadata
+    verifySSL: ignore
+    securityConfig:
+      jwtToken: ""

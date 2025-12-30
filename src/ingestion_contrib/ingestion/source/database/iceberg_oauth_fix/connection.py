@@ -42,6 +42,20 @@ logger = ingestion_logger()
 
 
 class IcebergConnectionOauthFix(BaseConnection[IcebergConnectionConfig, Catalog]):
+    """
+    Extends the original iceberg connection implementation by providing the possibility to add additional catalog properties,
+    which are essential for a working oauth2 configuration.
+    The configuration needs to be a json file with the following structure:
+    {
+        "<Catalog Name>": {
+            "<any_catalog_property_key>": "<any_catalog_property_value>",
+            "oauth2-server-uri": "<uri to an oauth2 token endpoint>"
+        }
+    }
+    The file path needs to be provided as an environment variable named ICEBERG_REST_CONFIG_FILE_PATH
+        or under the default path: "/etc/openmetadata-ingestion-contrib/rest-catalog-parameters.json"
+    """
+
     def __init__(self, connection: IcebergConnectionConfig):
         logger.info("Custom IcebergConnectionOauthFix was instantiated")
         super().__init__(connection)
