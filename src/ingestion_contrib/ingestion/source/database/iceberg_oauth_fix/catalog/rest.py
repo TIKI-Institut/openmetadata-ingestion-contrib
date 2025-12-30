@@ -11,7 +11,7 @@ from metadata.ingestion.source.database.iceberg.catalog.base import IcebergCatal
 import json
 
 
-class IcebergRestCatalog(IcebergCatalogBase):
+class IcebergRestCatalogOauthFix(IcebergCatalogBase):
     """Responsible for building a PyIceberg Rest Catalog."""
 
     @classmethod
