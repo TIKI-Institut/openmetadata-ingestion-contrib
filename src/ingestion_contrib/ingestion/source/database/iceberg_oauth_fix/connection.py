@@ -32,13 +32,18 @@ from metadata.ingestion.connections.test_connections import test_connection_step
 from metadata.ingestion.ometa.ometa_api import OpenMetadata
 from metadata.ingestion.source.database.iceberg.catalog import IcebergCatalogFactory
 from metadata.utils.constants import THREE_MIN
+from metadata.utils.logger import ingestion_logger
 from pyiceberg.catalog import Catalog
 
 from ingestion_contrib.ingestion.source.database.iceberg_oauth_fix.catalog.rest import IcebergRestCatalogOauthFix
 
 
+logger = ingestion_logger()
+
+
 class IcebergConnectionOauthFix(BaseConnection[IcebergConnectionConfig, Catalog]):
     def __init__(self, connection: IcebergConnectionConfig):
+        logger.info("Custom IcebergConnectionOauthFix was instantiated")
         super().__init__(connection)
 
     def _get_client(self) -> Catalog:
@@ -84,3 +89,10 @@ class IcebergConnectionOauthFix(BaseConnection[IcebergConnectionConfig, Catalog]
             automation_workflow=automation_workflow,
             timeout_seconds=timeout_seconds,
         )
+
+    def get_connection_dict(self) -> dict:
+        """
+        Return the connection dictionary for this service.
+        """
+        # TODO: maybe check for secrets and credentials
+        return self.client.properties
