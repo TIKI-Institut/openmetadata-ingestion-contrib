@@ -1,0 +1,4 @@
+from metadata.utils.service_spec.default import DefaultDatabaseSpec
+from ingestion_contrib.ingestion.source.database.iceberg_view_ingestion.metadata import CustomIcebergSource
+
+ServiceSpec = DefaultDatabaseSpec(metadata_source_class=CustomIcebergSource, connection_class="ingestion_contrib.ingestion.source.database.iceberg_oauth_fix.connection.IcebergConnectionOauthFix")
