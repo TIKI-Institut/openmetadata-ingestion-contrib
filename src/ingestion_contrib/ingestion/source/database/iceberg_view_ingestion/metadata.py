@@ -26,8 +26,10 @@ class CustomIcebergSource(IcebergSource):
         """
         namespace = self.context.get().database_schema
 
-        iceberg_tables = list(map(lambda identifier: (identifier, TableType.Regular), self.iceberg.list_tables(namespace)))
-        iceberg_views = list(map(lambda identifier: (identifier, TableType.View), self.iceberg.list_views(namespace)))
+        iceberg_tables = list(map(lambda identifier: (identifier, TableType.Regular), self.iceberg.list_tables(namespace))) \
+            if self.source_config.includeTables else []
+        iceberg_views = list(map(lambda identifier: (identifier, TableType.View), self.iceberg.list_views(namespace))) \
+            if self.source_config.includeViews else []
 
         for table_identifier, table_type in iceberg_tables + iceberg_views:
             try:
