@@ -6,7 +6,6 @@ COPY --chown=airflow ./src ./ingestion_contrib/src
 COPY --chown=airflow pyproject.toml ./ingestion_contrib
 COPY --chown=airflow config.example.yaml ./ingestion_contrib/config.yaml
 COPY --chown=airflow rest-catalog-parameters.example.json /etc/openmetadata-ingestion-contrib/rest-catalog-parameters.json
-COPY --chown=airflow ./libs/ ./ingestion_contrib/libs
 
 RUN cd ingestion_contrib && uv pip install .
 
