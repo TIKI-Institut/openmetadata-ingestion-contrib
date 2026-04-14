@@ -16,7 +16,7 @@ requires-python = ">=3.10"
 dependencies = [
     "openmetadata-ingestion>=1.9.0,<1.10",
     "PyYAML~=6.0",
-    "pyiceberg==0.10.0"
+    "pyiceberg @ git+https://github.com/spr0els/iceberg-python.git@load_view"
 ]
 
 [project.urls]
