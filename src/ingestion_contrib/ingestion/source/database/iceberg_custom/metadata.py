@@ -14,7 +14,7 @@ from metadata.ingestion.source.database.iceberg.models import IcebergTable
 from metadata.utils import fqn
 from metadata.utils.filters import filter_by_table
 
-from ingestion_contrib.ingestion.source.database.iceberg_view_ingestion.models import IcebergView
+from ingestion_contrib.ingestion.source.database.iceberg_custom.models import IcebergView
 
 
 class CustomIcebergSource(IcebergSource):

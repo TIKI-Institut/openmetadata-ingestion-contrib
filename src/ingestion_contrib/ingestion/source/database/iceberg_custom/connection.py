@@ -35,7 +35,7 @@ from metadata.utils.constants import THREE_MIN
 from metadata.utils.logger import ingestion_logger
 from pyiceberg.catalog import Catalog
 
-from ingestion_contrib.ingestion.source.database.iceberg_oauth_fix.catalog.rest import IcebergRestCatalogOauthFix
+from ingestion_contrib.ingestion.source.database.iceberg_custom.catalog.rest import IcebergRestCatalogOauthFix
 
 
 logger = ingestion_logger()
