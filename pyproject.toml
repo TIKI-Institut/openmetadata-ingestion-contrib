@@ -1,9 +1,6 @@
 [build-system]
-requires = ["uv_build >= 0.10.10, <=0.11.6"]
-build-backend = "uv_build"
-
-[tool.uv.build-backend]
-module-name = "ingestion_contrib"
+requires = ["setuptools~=70.3.0"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "openmetadata-ingestion-contrib"
