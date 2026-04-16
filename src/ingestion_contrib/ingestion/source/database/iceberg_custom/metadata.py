@@ -18,6 +18,10 @@ from ingestion_contrib.ingestion.source.database.iceberg_custom.models import Ic
 
 
 class CustomIcebergSource(IcebergSource):
+    """
+    Extends the original IcebergSource and changes following behaviour:
+        - ingestion of iceberg views
+    """
 
     def get_tables_name_and_type(self) -> Optional[Iterable[Tuple[str, str]]]:
         """
