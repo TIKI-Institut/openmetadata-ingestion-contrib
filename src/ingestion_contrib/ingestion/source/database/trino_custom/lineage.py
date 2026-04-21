@@ -10,6 +10,9 @@ from metadata.ingestion.source.database.trino.lineage import TrinoLineageSource
 
 
 class CustomTrinoLineageSource(TrinoLineageSource):
+    """
+    Extends the original TrinoLineageSource class to build lineage between tables/views with different cases
+    """
 
     def check_same_table(self, table1: Table, table2: Table) -> bool:
         """
