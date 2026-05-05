@@ -102,6 +102,7 @@ class CustomIcebergSource(IcebergSource):
         table_name, table_type = table_name_and_type
         iceberg_table = self.context.get().iceberg_table
         try:
+            sql_representation = None
             if table_type == TableType.Regular:
                 owners = self.get_owner_ref(table_name)
                 table = IcebergTable.from_pyiceberg(
@@ -111,6 +112,7 @@ class CustomIcebergSource(IcebergSource):
                 table = IcebergView.from_pyiceberg(
                     table_name, iceberg_table
                 )
+                sql_representation = IcebergView.get_view_definition(iceberg_table)
 
             table_request = CreateTableRequest(
                 name=EntityName(table.name),
@@ -119,6 +121,7 @@ class CustomIcebergSource(IcebergSource):
                 owners=table.owners,
                 columns=table.columns,
                 tablePartition=table.tablePartition,
+                schemaDefinition=sql_representation,
                 databaseSchema=FullyQualifiedEntityName(
                     fqn.build(
                         metadata=self.metadata,
