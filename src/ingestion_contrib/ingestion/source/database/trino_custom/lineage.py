@@ -68,7 +68,7 @@ class CustomTrinoLineageSource(TrinoLineageSource):
 
     def yield_cross_database_lineage(self) -> Iterable[Either[AddLineageRequest]]:
         try:
-            all_cross_database_fqns = self.get_cross_database_fqn_from_service_names()
+            cross_service_names = self.source_config.crossDatabaseServiceNames
             cross_database_table_schema_mapping: Dict[str, Dict[str, Table]] = {}
 
             # Get all databases for the specified Trino service
@@ -89,14 +89,15 @@ class CustomTrinoLineageSource(TrinoLineageSource):
                                 fqn.split(trino_table.fullyQualifiedName.root)) != 4:
                             logger.warn(f"Cannot get schema name from Trino table {trino_table.name.root}. Skipping...")
                             continue
-                        cross_schema_name = fqn.split(trino_table.fullyQualifiedName.root)[-2]
+                        trino_database_schema_fqn = ".".join(fqn.split(trino_table.fullyQualifiedName.root)[:-1])
                     else:
-                        cross_schema_name = trino_table.databaseSchema.name
+                        trino_database_schema_fqn = trino_table.databaseSchema.name
 
+                    trino_service_name = trino_table.service.name if trino_table.service else fqn.split(trino_table.fullyQualifiedName)[0]
                     # NOTE: Currently, tables in system-defined schemas will also be checked for lineage.
-                    for cross_database_fqn in all_cross_database_fqns:
+                    for cross_service_name in cross_service_names:
                         cross_database_table = self._get_cross_database_table(
-                            f"{cross_database_fqn}.{cross_schema_name}", trino_table,
+                            trino_database_schema_fqn.replace(trino_service_name, cross_service_name), trino_table,
                             cross_database_table_schema_mapping
                         )
                         if cross_database_table:
