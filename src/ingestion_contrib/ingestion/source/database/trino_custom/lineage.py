@@ -16,11 +16,13 @@ logger = ingestion_logger()
 class CustomTrinoLineageSource(TrinoLineageSource):
     """
     Extends the original TrinoLineageSource class to build lineage between tables/views with different cases
+    Fixes the Issue https://github.com/open-metadata/OpenMetadata/issues/27419 temporarily for older OM version
+    Issue fixed officially via https://github.com/open-metadata/OpenMetadata/pull/27495 and should be release in OM 1.13+
     """
 
     def check_same_table(self, table1: Table, table2: Table) -> bool:
         """
-        Method to check whether the table1 and table2 are same without considering the case
+        Method to check whether the table1 and table2 are the same without considering the case
         """
         return table1.name.root.lower() == table2.name.root.lower() and {
             column.name.root.lower() for column in table1.columns
@@ -28,7 +30,9 @@ class CustomTrinoLineageSource(TrinoLineageSource):
 
     def _get_cross_schema_fqn(self, source_schema_fqn: str) -> Optional[str]:
         """
-        Get the cross schema fqn with the correct case
+        Get the cross schema fqn with the correct case.
+        Trino tracks every object in lowercase, but the cross database services could use upper case letters.
+        We use the ElasticSearch Index to do a fast case invariant lookup.
         """
         service_name, database_name, schema_name = fqn.split(source_schema_fqn)
         target_schema_fqn = fqn.search_database_schema_from_es(metadata=self.metadata,
@@ -52,10 +56,13 @@ class CustomTrinoLineageSource(TrinoLineageSource):
                 for cross_database_table in self.metadata.list_all_entities(
                         entity=Table, params={"databaseSchema": cross_schema_fqn}
                 ):
-                    cross_database_table_schema_mapping[cross_database_schema_fqn][cross_database_table.name.root.lower()] = cross_database_table
+                    cross_database_table_schema_mapping[cross_database_schema_fqn][
+                        cross_database_table.name.root.lower()] = cross_database_table
 
-        if ((cross_database_table := cross_database_table_schema_mapping[cross_database_schema_fqn].get(trino_table.name.root.lower()) is not None)
-                and self.check_same_table(trino_table, cross_database_table)):
+        cross_database_table = cross_database_table_schema_mapping[cross_database_schema_fqn].get(
+            trino_table.name.root.lower())
+
+        if cross_database_table is not None and self.check_same_table(trino_table, cross_database_table):
             return cross_database_table
         return None
 
@@ -78,7 +85,8 @@ class CustomTrinoLineageSource(TrinoLineageSource):
                 for trino_table in trino_tables:
 
                     if not trino_table.databaseSchema:
-                        if not trino_table.fullyQualifiedName or len(fqn.split(trino_table.fullyQualifiedName.root)) != 4:
+                        if not trino_table.fullyQualifiedName or len(
+                                fqn.split(trino_table.fullyQualifiedName.root)) != 4:
                             logger.warn(f"Cannot get schema name from Trino table {trino_table.name.root}. Skipping...")
                             continue
                         cross_schema_name = fqn.split(trino_table.fullyQualifiedName.root)[-2]
