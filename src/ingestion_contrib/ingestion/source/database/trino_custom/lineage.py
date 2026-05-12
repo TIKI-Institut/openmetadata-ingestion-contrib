@@ -34,7 +34,14 @@ class CustomTrinoLineageSource(TrinoLineageSource):
         Trino tracks every object in lowercase, but the cross database services could use upper case letters.
         We use the ElasticSearch Index to do a fast case invariant lookup.
         """
-        service_name, database_name, schema_name = fqn.split(source_schema_fqn)
+        fqn_parts = fqn.split(source_schema_fqn)
+
+        if len(fqn_parts) != 3:
+            logger.warn(f"Expected FQN {source_schema_fqn} containing 3 elements, actual {len(fqn_parts)}. Skipping...")
+            return None
+
+        service_name, database_name, schema_name = fqn_parts
+
         target_schema_fqn = fqn.search_database_schema_from_es(metadata=self.metadata,
                                                                service_name=service_name,
                                                                database_name=database_name,
@@ -84,17 +91,17 @@ class CustomTrinoLineageSource(TrinoLineageSource):
                 )
                 for trino_table in trino_tables:
 
-                    if not trino_table.databaseSchema:
+                    if trino_table.databaseSchema:
+                        trino_database_schema_fqn = trino_table.databaseSchema.fullyQualifiedName
+                    else:
                         if not trino_table.fullyQualifiedName or len(
                                 fqn.split(trino_table.fullyQualifiedName.root)) != 4:
                             logger.warn(f"Cannot get schema name from Trino table {trino_table.name.root}. Skipping...")
                             continue
                         trino_database_schema_fqn = ".".join(fqn.split(trino_table.fullyQualifiedName.root)[:-1])
-                    else:
-                        trino_database_schema_fqn = trino_table.databaseSchema.name
 
                     trino_service_name = trino_table.service.name if trino_table.service else fqn.split(trino_table.fullyQualifiedName)[0]
-                    # NOTE: Currently, tables in system-defined schemas will also be checked for lineage.
+
                     for cross_service_name in cross_service_names:
                         cross_database_table = self._get_cross_database_table(
                             trino_database_schema_fqn.replace(trino_service_name, cross_service_name), trino_table,
