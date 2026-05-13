@@ -7,6 +7,7 @@ from metadata.generated.schema.entity.data.databaseSchema import DatabaseSchema
 from metadata.generated.schema.entity.data.table import Table, TableType
 from metadata.generated.schema.entity.services.ingestionPipelines.status import StackTraceError
 from metadata.generated.schema.type.basic import EntityName, FullyQualifiedEntityName
+from metadata.generated.schema.type.entityReferenceList import EntityReferenceList
 from metadata.ingestion.api.models import Either
 from metadata.ingestion.source.database.iceberg.helper import get_table_name_as_str
 from metadata.ingestion.source.database.iceberg.metadata import IcebergSource, logger
@@ -90,6 +91,18 @@ class CustomIcebergSource(IcebergSource):
                     )
                 )
 
+    def get_owner_ref(self, table_name: str) -> Optional[EntityReferenceList]:
+        owner = self.context.get().iceberg_table.metadata.properties.get(self.service_connection.ownershipProperty)
+
+        try:
+            if owner:
+                owner_reference = self.metadata.get_reference_by_email(owner.lower())
+                return owner_reference
+        except Exception as err:
+            logger.debug(traceback.format_exc())
+            logger.warning(f"Could not fetch owner data due to {err}")
+        return None
+
     def yield_table(
             self, table_name_and_type: Tuple[str, TableType]
     ) -> Iterable[Either[CreateTableRequest]]:
@@ -103,14 +116,15 @@ class CustomIcebergSource(IcebergSource):
         iceberg_table = self.context.get().iceberg_table
         try:
             sql_representation = None
+            owners = self.get_owner_ref(table_name)
+
             if table_type == TableType.Regular:
-                owners = self.get_owner_ref(table_name)
                 table = IcebergTable.from_pyiceberg(
                     table_name, table_type, owners, iceberg_table
                 )
             elif table_type == TableType.View:
                 table = IcebergView.from_pyiceberg(
-                    table_name, iceberg_table
+                    table_name, owners, iceberg_table
                 )
                 sql_representation = IcebergView.get_view_definition(iceberg_table)
 
